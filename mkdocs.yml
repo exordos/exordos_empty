@@ -1,7 +1,7 @@
-site_name: genesis_empty
+site_name: exordos_empty
 site_url: https://github.com/infraguys/
-repo_name: genesis_empty
-repo_url: https://github.com/infraguys/genesis_empty
+repo_name: exordos_empty
+repo_url: https://github.com/infraguys/exordos_empty
 edit_uri: browse/docs/
 
 theme:
@@ -68,5 +68,5 @@ markdown_extensions:
       alternate_style: true
 
 nav:
-  - Example element: index.md
+  - Empty element: index.md
 
