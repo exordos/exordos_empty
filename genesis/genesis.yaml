@@ -22,7 +22,7 @@ build:
     - dst: /opt/empty
       # Local path
       path:
-        src: ../../genesis_empty
+        src: ../../exordos_empty
 
   # List of elements in the project
   elements:
