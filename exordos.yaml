@@ -22,20 +22,20 @@ build:
     - dst: /opt/empty
       # Local path
       path:
-        src: ../../exordos_empty
+        src: ../exordos_empty
 
   # List of elements in the project
   elements:
-    - manifest: manifests/empty.yaml.j2
+    - manifest: exordos/manifests/empty.yaml.j2
       images:
       - name: empty
         format: gz
 
         # OS profile for the image
-        profile: genesis_base
+        profile: exordos_base
 
         # Provisioning script
-        script: images/install.sh
+        script: exordos/images/install.sh
 
         # Override image build parameters, for instance Packer parameters
         override:
