@@ -22,7 +22,7 @@ resources:
       disk_spec:
         kind: "root_disk"
         size: 10
-        image: "{{ repository | default('https://repository.genesis-core.tech/genesis-elements') }}/empty/{{ version }}/images/empty.raw.gz"
+        image: "{{ repository | default('https://repository.genesis-core.tech/exordos-elements') }}/empty/{{ version }}/images/empty.raw.gz"
 
 imports:
   var_default_replicas:
