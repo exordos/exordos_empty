@@ -1,52 +1,78 @@
-name: build
+name: build2
 
 on:
   push:
 
 env:
   ARTIFACTS_PATH: artifacts
+  PACKER_VERSION: "1.9.2"
+  CORE_ENDPOINT_URL: http://10.20.0.2:11010
+  CORE_USERNAME: "admin"
+  CORE_PASSWORD: "admin"
+  ELEMENT_NAME: empty
+  PACKER_LOG: 1
 
 jobs:
-  Build:
-    runs-on: self-hosted
+  BuildTestPush:
+    runs-on: ubuntu-24.04
     if : ${{ github.actor != 'dependabot[bot]' }}
-    strategy:
-      fail-fast: true
     steps:
+      - name: Setup `packer`
+        uses: hashicorp/setup-packer@main
+        with:
+          version: ${{ env.PACKER_VERSION }}
+      - name: Install exordos
+        run: curl -fsSL https://repo.exordos.com/install.sh | sudo sh
+      - name: Install hypervisor
+        run: |
+          sudo exordos compute hypervisors init
+          sudo chmod +666 /dev/kvm
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 30
-      - name: Build Exordos Empty element
+          fetch-depth: 0
+      - name: Build Exordos Empty
+        timeout-minutes: 20
         env:
-            PUSH_CFG: ${{ secrets.PUSH_CFG }}
+          PUSH_EXORDOS_CFG: ${{ secrets.PUSH_EXORDOS_CFG }}
         run: |
           set -eux
-
+          
           mkdir -p ${ARTIFACTS_PATH}
 
           VERSION="$(exordos get-version .)"
-
+          
           exordos build $(pwd)
+          
+          echo "$PUSH_EXORDOS_CFG" | base64 -d > exordos/exordos.push.yaml
+          exordos push -c exordos/exordos.push.yaml -t exordos_repo -f --latest
+          
+          exordos settings set-realm default --endpoint $CORE_ENDPOINT_URL
+          exordos settings set-context default --name default --user $CORE_USERNAME --password $CORE_PASSWORD
+          
+          exordos bootstrap -i latest -f -m core --admin-password $CORE_PASSWORD --cidr 10.20.0.0/22
+          
+          for i in {1..10}; do
+            if exordos ready_api; then
+              echo "Exordos Core API is ready"
+              break
+            fi
+            echo "Waiting for Exordos Core API... ($i/10)"
+            sleep 5
+          done
+          
+          HYPER_UUID="$(exordos c h l -o json | jq -r .[0]."UUID")"
+          exordos compute hypervisors update $HYPER_UUID --cores_ratio 10.0 --ram_ratio 10.0
+          
+          exordos e e install $ELEMENT_NAME -v $VERSION
 
-          # Decode and write the push configuration
-          echo "$PUSH_CFG" | base64 -d > exordos/exordos.push.yaml
-          exordos push -c exordos/exordos.push.yaml -t local -f --latest
-
-          # Temporary upload step is done in the build script
-          echo "${VERSION}" > "${ARTIFACTS_PATH}/version.txt"
-          mv output/images/*.raw.zst "${ARTIFACTS_PATH}/"
-      - name: Set current date as env variable
-        id: date
-        run: |
-          r=$(date -u +'%Y.%m.%d')
-          echo "DATE=$r" >> $GITHUB_OUTPUT
-      - name: Publish image (for tags only)
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./artifacts/*.zst
-          tag: ${{ github.ref }}
-          release_name: ${{ steps.date.outputs.DATE }} (${{ github.ref_name }})
-          overwrite: true
-          file_glob: true
+          while [ $(exordos ee l -o json -f name=$ELEMENT_NAME | jq -r .[0]."Status") != "ACTIVE" ]; do
+            sleep 5
+          done
+          
+          exordos e e show $ELEMENT_NAME
+#      - name: Setup upterm session
+#        uses: owenthereal/action-upterm@v1
+#        if: ${{ failure() }}
+#        with:
+#          limit-access-to-actor: true
+#          wait-timeout-minutes: 15
