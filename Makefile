@@ -1,5 +1,4 @@
 SHELL := bash
-REPOSITORY := https://repo.exordos.com
 ifeq ($(SSH_KEY),)
 	SSH_KEY = ~/.ssh/id_rsa.pub
 endif
@@ -22,4 +21,4 @@ build:
 	exordos build -i $(SSH_KEY) -f
 
 install:
-	exordos elements install output/manifests/empty.yaml
+	exordos e e install output/manifests/empty.yaml

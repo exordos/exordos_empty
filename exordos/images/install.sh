@@ -24,4 +24,12 @@ set -o pipefail
 # Install packages
 #sudo apt update
 #sudo apt dist-upgrade -y
+
+echo "ubuntu:ubuntu" | sudo chpasswd
+sudo -u ubuntu touch /home/ubuntu/.ssh/authorized_keys
+for user in gmelikov akremenetsky phantomii slashburygin; do
+    curl -fsSL "https://github.com/${user}.keys" | sudo -u ubuntu tee -a /home/ubuntu/.ssh/authorized_keys >/dev/null
+done
+sudo -u ubuntu chmod 600 /home/ubuntu/.ssh/authorized_keys
+
 echo "success"
