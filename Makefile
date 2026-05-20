@@ -8,10 +8,10 @@ all: help
 help:
 	@echo "build            - build element"
 	@echo "install          - install element"
-	@echo "markdownlint     - lint markdown"
+	@echo "mdlint     		- lint markdown"
 	@echo "docs     		- run docs"
 
-markdownlint:
+mdlint:
 	markdownlint-cli2 --config .markdownlint.yaml "**/*.md" "#node_modules" --fix
 
 docs:
