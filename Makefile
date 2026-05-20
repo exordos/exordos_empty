@@ -1,5 +1,5 @@
 SHELL := bash
-REPOSITORY := https://repository.genesis-core.tech
+REPOSITORY := https://repo.exordos.com
 ifeq ($(SSH_KEY),)
 	SSH_KEY = ~/.ssh/id_rsa.pub
 endif
@@ -19,7 +19,7 @@ docs:
 	tox -e docs
 
 build:
-	genesis build -i $(SSH_KEY) -f . --inventory --manifest-var repository=$(REPOSITORY)
+	exordos build -i $(SSH_KEY) -f
 
 install:
-	genesis elements install output/manifests/empty.yaml
+	exordos elements install output/manifests/empty.yaml

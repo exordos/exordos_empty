@@ -29,7 +29,7 @@ build:
     - manifest: exordos/manifests/empty.yaml.j2
       images:
       - name: empty
-        format: gz
+        format: zst
 
         # OS profile for the image
         profile: exordos_base
