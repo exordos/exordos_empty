@@ -1,11 +1,11 @@
 # Empty
 
-This is an empty example of a Genesis element.
+This is an empty example of a Exordos element.
 
 ## Installation
 
 To install this element, run the following command:
 
 ```bash
-genesis elements install empty
+exordos elements install empty
 ```
