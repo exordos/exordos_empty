@@ -32,7 +32,7 @@ build:
         format: zst
 
         # OS profile for the image
-        profile: exordos_base
+        profile: exordos_base_minimal
 
         # Provisioning script
         script: exordos/images/install.sh
@@ -40,4 +40,4 @@ build:
         # Override image build parameters, for instance Packer parameters
         override:
           # For development purposes it's handy to have more space.
-          disk_size: "8G"
+          disk_size: "6G"
