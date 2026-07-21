@@ -6,11 +6,11 @@ on:
 env:
   ARTIFACTS_PATH: artifacts
   PACKER_VERSION: "1.9.2"
-  CORE_ENDPOINT_URL: http://10.20.0.2:11010
+  CORE_ENDPOINT_URL: http://10.20.0.2:80/api/core
   CORE_USERNAME: "admin"
   CORE_PASSWORD: "admin"
   ELEMENT_NAME: empty
-  PACKER_LOG: 1
+  # PACKER_LOG: 1
 
 jobs:
   BuildTestPush:
@@ -22,16 +22,17 @@ jobs:
         with:
           version: ${{ env.PACKER_VERSION }}
       - name: Install exordos
-        run: curl -fsSL https://repo.exordos.com/install.sh | sudo sh
+        run: curl -fsSL https://repo.exordos.com/install.sh | sh
       - name: Install hypervisor
         run: |
-          sudo exordos compute hypervisors init
+          EXORDOS_BIN=$(which exordos)
+          sudo $EXORDOS_BIN compute hypervisors init
           sudo chmod +666 /dev/kvm
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Build Exordos Empty
-        timeout-minutes: 20
+        timeout-minutes: 10
         env:
           PUSH_EXORDOS_CFG: ${{ secrets.PUSH_EXORDOS_CFG }}
         run: |
@@ -51,28 +52,28 @@ jobs:
           
           exordos bootstrap -i latest -f -m core --admin-password $CORE_PASSWORD --cidr 10.20.0.0/22
           
-          for i in {1..10}; do
+          for i in {1..20}; do
             if exordos ready_api; then
               echo "Exordos Core API is ready"
               break
             fi
-            echo "Waiting for Exordos Core API... ($i/10)"
+            echo "Waiting for Exordos Core API... ($i/20)"
             sleep 5
           done
           
-          HYPER_UUID="$(exordos c h l -o json | jq -r .[0]."UUID")"
-          exordos compute hypervisors update $HYPER_UUID --cores_ratio 10.0 --ram_ratio 10.0
+          HYPER_UUID="$(exordos c h l -o json | jq -r .[0]."uuid")"
+          exordos compute hypervisors update $HYPER_UUID --cores-ratio 10.0 --ram-ratio 10.0
           
           exordos e e install $ELEMENT_NAME -v $VERSION
 
-          while [ $(exordos ee l -o json -f name=$ELEMENT_NAME | jq -r .[0]."Status") != "ACTIVE" ]; do
+          while [ $(exordos ee l -o json -f name=$ELEMENT_NAME | jq -r .[0]."status") != "ACTIVE" ]; do
             sleep 5
           done
           
           exordos e e show $ELEMENT_NAME
-#      - name: Setup upterm session
-#        uses: owenthereal/action-upterm@v1
-#        if: ${{ failure() }}
-#        with:
-#          limit-access-to-actor: true
-#          wait-timeout-minutes: 15
+      - name: Setup upterm session
+        uses: owenthereal/action-upterm@v1
+        if: ${{ failure() }}
+        with:
+          limit-access-to-actor: true
+          wait-timeout-minutes: 15
