@@ -27,6 +27,14 @@ build:
   # List of elements in the project
   elements:
     - manifest: exordos/manifests/empty.yaml.j2
+
+      # Element store assets: icon and preview pictures
+      artifacts:
+        - path: exordos/artifacts/icon.svg
+        - path: exordos/artifacts/icon.png
+        - path: exordos/artifacts/preview-1.png
+        - path: exordos/artifacts/preview-2.png
+
       images:
       - name: empty
         format: zst
