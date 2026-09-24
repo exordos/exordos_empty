@@ -52,9 +52,8 @@ jobs:
           exordos push -c exordos/exordos.push.yaml -t exordos_repo -f --latest
   Test:
     needs: Build
-    uses: exordos/exordos_tests/.github/workflows/element_realm_test.yml@element_realm_workflow
+    uses: exordos/exordos_tests/.github/workflows/element_realm_test.yml@master
     with:
       elements: empty
       version: ${{ needs.Build.outputs.version }}
-      tests-ref: element_realm_workflow
     secrets: inherit
