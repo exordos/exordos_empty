@@ -7,52 +7,17 @@ on:
     tags:
       - '*'
 
-env:
-  ARTIFACTS_PATH: artifacts
-  PACKER_VERSION: "1.9.2"
-  # PACKER_LOG: 1
-
 jobs:
   Build:
-    runs-on: ubuntu-24.04
-    if : ${{ github.actor != 'dependabot[bot]' }}
-    outputs:
-      version: ${{ steps.build.outputs.version }}
-    steps:
-      - name: Setup `packer`
-        uses: hashicorp/setup-packer@main
-        with:
-          version: ${{ env.PACKER_VERSION }}
-      - name: Install exordos
-        run: curl -fsSL https://repo.exordos.com/install.sh | sh
-      - name: Install hypervisor
-        run: |
-          EXORDOS_BIN=$(which exordos)
-          sudo $EXORDOS_BIN compute hypervisors init
-          sudo chmod +666 /dev/kvm
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - name: Build Exordos Empty
-        id: build
-        timeout-minutes: 10
-        env:
-          PUSH_EXORDOS_CFG: ${{ secrets.PUSH_EXORDOS_CFG }}
-        run: |
-          set -eux
-
-          mkdir -p ${ARTIFACTS_PATH}
-
-          VERSION="$(exordos get-version .)"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-          exordos build $(pwd)
-
-          echo "$PUSH_EXORDOS_CFG" | base64 -d > exordos/exordos.push.yaml
-          exordos push -c exordos/exordos.push.yaml -t exordos_repo -f --latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    uses: exordos/exordos_ci/.github/workflows/element_build.yml@master
+    with:
+      push-target: exordos_repo
+    secrets:
+      PUSH_CFG: ${{ secrets.PUSH_EXORDOS_CFG }}
   Test:
     needs: Build
-    uses: exordos/exordos_tests/.github/workflows/element_realm_test.yml@master
+    uses: exordos/exordos_ci/.github/workflows/element_realm_test.yml@master
     with:
       elements: empty
       version: ${{ needs.Build.outputs.version }}
