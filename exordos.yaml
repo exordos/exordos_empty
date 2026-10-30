@@ -41,6 +41,7 @@ build:
 
         # OS profile for the image
         profile: exordos_base_minimal
+        profile_version: "1.3.7"
 
         # Provisioning script
         script: exordos/images/install.sh
